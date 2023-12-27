@@ -1,0 +1,35 @@
+version: "3.10"
+
+services:
+  postgres:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/
+    ports:
+      - "5432:5432"
+
+
+  adminer:
+      image: adminer
+      restart: always
+      ports:
+        - 8080:8080
+
+
+  backend:
+    links:
+      - postgres
+      - adminer
+    build: ./
+    restart: always
+    command: uvicorn main:calendar --host 0.0.0.0
+    ports:
+      - "8000:8000"
+
+volumes:
+  pgdata:
