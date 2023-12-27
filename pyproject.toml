@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "calendarapi"
+version = "0.1"
+description = "Calendar Api"
+authors = ["LedxDeliveryFlopp"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.108.0"
+sqlalchemy = "^2.0.23"
+loguru = "^0.7.2"
+ruff = "^0.1.9"
+alembic = "^1.13.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
