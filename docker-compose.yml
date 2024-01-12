@@ -14,22 +14,22 @@ services:
       - "5432:5432"
 
 
-  adminer:
-      image: adminer
-      restart: always
-      ports:
-        - 8080:8080
-
-
-  backend:
+  calendar_app:
     links:
       - postgres
-      - adminer
-    build: ./
-    restart: always
-    command: uvicorn main:calendar --host 0.0.0.0
+    build: ./calendar_app
+    command: uvicorn main:calendar_app --host 0.0.0.0 --port 9000
+    ports:
+      - "9000:9000"
+
+  user_app:
+    links:
+      - postgres
+    build: ./user_app
+    command: uvicorn main:user_system --host 0.0.0.0 --port 8000
     ports:
       - "8000:8000"
+
 
 volumes:
   pgdata:

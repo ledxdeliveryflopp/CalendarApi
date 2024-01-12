@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from calendar_app.models.calendar_model import TaskModel
-from calendar_app.schemas.calendar_chemas import TaskCreate
+from models.calendar_model import TaskModel
+from schemas.calendar_chemas import TaskCreate
 
 
 async def get_all_task(session: AsyncSession):

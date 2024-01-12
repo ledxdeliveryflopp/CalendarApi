@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, Date
-from database.database import Base
+from database.db import Base
 
 
 class TaskModel(Base):

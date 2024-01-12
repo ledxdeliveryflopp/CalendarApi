@@ -1,22 +1,26 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import Depends, HTTPException, FastAPI
 from sqlalchemy.ext.asyncio import AsyncSession
-from calendar_app.crud.calendar_crud import get_all_task, create_task, get_task_by_title
-from calendar_app.schemas.calendar_chemas import TaskDetail, TaskCreate
-from database.database import async_session
+from crud.calendar_crud import get_all_task, create_task, get_task_by_title
+from schemas.calendar_chemas import TaskDetail, TaskCreate
+from database.db import async_session, engine, Base
 
 
 async def get_session() -> AsyncSession:
     async with async_session() as session:
         yield session
 
-
-router = APIRouter(
-    prefix="/calendar",
-    tags=["calendar"],
-)
+calendar_app = FastAPI()
 
 
-@router.get("/list/", response_model=list[TaskDetail])
+@calendar_app.on_event("startup")
+async def init_tables():
+    """Создаем таблицы бд"""
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+        await conn.run_sync(Base.metadata.create_all)
+
+
+@calendar_app.get("/list/", response_model=list[TaskDetail], tags=['Task'])
 async def get_task_router(session: AsyncSession = Depends(get_session)):
     """руотер вывода всех задач"""
     tasks = await get_all_task(session)
@@ -25,7 +29,7 @@ async def get_task_router(session: AsyncSession = Depends(get_session)):
     return tasks
 
 
-@router.get("/task/", response_model=TaskDetail)
+@calendar_app.get("/task/", response_model=TaskDetail, tags=['Task'])
 async def get_task_by_title_router(title: str, session: AsyncSession = Depends(get_session)):
     """руотер вывода всех задач"""
     task = await get_task_by_title(session, title=title)
@@ -34,7 +38,7 @@ async def get_task_by_title_router(title: str, session: AsyncSession = Depends(g
     return task
 
 
-@router.post("/create/", response_model=TaskDetail)
+@calendar_app.post("/create/", response_model=TaskDetail, tags=['Task'])
 async def create_task_router(task_schemas: TaskCreate, session: AsyncSession = Depends(get_session)):
     """руотер создания задачи"""
     task = create_task(session=session, task_schemas=task_schemas)

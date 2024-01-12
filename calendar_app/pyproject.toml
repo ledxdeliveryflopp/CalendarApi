@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "calendarapi"
+version = "0.1"
+description = "Calendar Api"
+authors = ["LedxDeliveryFlopp"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.108.0"
+sqlalchemy = "^2.0.23"
+loguru = "^0.7.2"
+ruff = "^0.1.9"
+alembic = "^1.13.1"
+uvicorn = "^0.25.0"
+psycopg2 = "^2.9.9"
+asyncpg = "^0.29.0"
+pytz = "^2023.3.post1"
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+python-multipart = "^0.0.6"
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

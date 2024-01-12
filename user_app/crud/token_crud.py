@@ -1,6 +1,9 @@
 from datetime import timedelta, datetime, timezone
 from jose import jwt
-from user_app.utils.token_utils import SECRET_KEY, ALGORITHM
+
+SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):

@@ -1,7 +1,5 @@
 from pydantic import BaseModel, Field
 
-from user_app.schemas.token_chemas import Token
-
 
 class UserBase(BaseModel):
     """Базовая схема пользователя"""
