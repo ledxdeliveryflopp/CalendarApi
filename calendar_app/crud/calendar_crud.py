@@ -10,10 +10,10 @@ async def get_all_task(session: AsyncSession):
     return result.scalars().all()
 
 
-async def get_calendar_by_task(db: AsyncSession, task: str):
+async def get_task_by_title(session: AsyncSession, title: str):
     """Функция вывода задач с определенным названием"""
-    result = await db.query(TaskModel).filter(TaskModel.task == task).first()
-    return result
+    result = await session.execute(select(TaskModel).where(TaskModel.title == title))
+    return result.first()
 
 
 def create_task(session: AsyncSession, task_schemas: TaskCreate):

@@ -1,5 +1,7 @@
 from pydantic import BaseModel, Field
 
+from user_app.schemas.token_chemas import Token
+
 
 class UserBase(BaseModel):
     """Базовая схема пользователя"""
@@ -14,3 +16,9 @@ class UserCreate(UserBase):
 class UserTestSchemas(UserCreate):
     """test"""
     id: int
+
+
+class UserLogin(UserBase):
+    plain_password: str
+
+

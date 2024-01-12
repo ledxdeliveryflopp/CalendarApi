@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from calendar_app.crud.calendar_crud import get_all_task, create_task
+from calendar_app.crud.calendar_crud import get_all_task, create_task, get_task_by_title
 from calendar_app.schemas.calendar_chemas import TaskDetail, TaskCreate
 from database.database import async_session
 
@@ -23,6 +23,15 @@ async def get_task_router(session: AsyncSession = Depends(get_session)):
     if not tasks:
         raise HTTPException(status_code=404, detail="Задач нет")
     return tasks
+
+
+@router.get("/task/", response_model=TaskDetail)
+async def get_task_by_title_router(title: str, session: AsyncSession = Depends(get_session)):
+    """руотер вывода всех задач"""
+    task = await get_task_by_title(session, title=title)
+    if not task:
+        raise HTTPException(status_code=404, detail="Задач нет")
+    return task
 
 
 @router.post("/create/", response_model=TaskDetail)
