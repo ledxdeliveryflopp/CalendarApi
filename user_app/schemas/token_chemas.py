@@ -1,10 +1,14 @@
+from datetime import datetime
 from pydantic import BaseModel
 
 
 class Token(BaseModel):
-    access_token: str
-    token_type: str
+    """Схема токена"""
+    token: str
+    expires: datetime
+    user_id: int
 
 
 class TokenData(BaseModel):
-    username: str | None = None
+    """Схема токена для получения пользователя"""
+    user_id: int

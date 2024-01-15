@@ -24,3 +24,8 @@ async def get_user(session: AsyncSession, username: str):
     user = await session.execute(select(UserModel).where(UserModel.username == username))
     return user.scalars().first()
 
+
+async def get_user_id(session: AsyncSession, user_id: int):
+    """Функция вывода пользователя по id"""
+    user = await session.execute(select(UserModel).where(UserModel.id == user_id))
+    return user.scalars().first()
