@@ -4,7 +4,7 @@ import httpx
 from fastapi import FastAPI, Depends, Query, HTTPException
 from httpx import HTTPError
 from sqlalchemy.ext.asyncio import AsyncSession
-from crud.cart_crud import create_cart, get_all_cart
+from crud.cart_crud import create_cart, get_all_cart, get_user
 from database.db import async_session, engine, Base
 from schemas.cart_schemas import Cart
 
@@ -26,16 +26,9 @@ async def init_tables():
 
 
 @cart_system.post('/add_cart/', response_model=Cart, tags=['Cart'])
-def create_cart_router(user_id: int, products_id: list[int] = Query(None),
-                       session: AsyncSession = Depends(get_session)):
-    user_url = f'http://calendarapi-user_app-1:8000/user_id/?user_id={user_id}'
-    response = httpx.get(user_url)
-    if response.status_code == 500:
-        raise HTTPException(status_code=500, detail='Сервер пользователей не отвечает')
-    elif response.status_code == 404:
-        raise HTTPException(status_code=404, detail='Пользователь на найден')
-    json = response.json()
-    user = json['id']
+async def create_cart_router(user_id: int, products_id: list[int] = Query(None),
+                             session: AsyncSession = Depends(get_session)):
+    user = await get_user(user_id=user_id)
     new_cart = create_cart(session, products_id=products_id, user_id=user)
     return new_cart
 
