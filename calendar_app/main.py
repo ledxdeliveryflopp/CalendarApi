@@ -1,5 +1,7 @@
+import httpx
 from fastapi import Depends, HTTPException, FastAPI
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.middleware.cors import CORSMiddleware
 from crud.calendar_crud import get_all_task, create_task, get_task_by_title
 from schemas.calendar_chemas import TaskDetail, TaskCreate
 from database.db import async_session, engine, Base
@@ -10,6 +12,23 @@ async def get_session() -> AsyncSession:
         yield session
 
 calendar_app = FastAPI()
+
+
+origins = [
+    "http://localhost",
+    "http://localhost:8000/",
+    "http://127.0.0.1:9000/",
+    "https://pogoda.mail.ru/",
+    "http://calendar_app:9000/"
+]
+
+calendar_app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @calendar_app.on_event("startup")
@@ -38,13 +57,14 @@ async def get_task_by_title_router(title: str, session: AsyncSession = Depends(g
     return task
 
 
-@calendar_app.post("/create/", response_model=TaskDetail, tags=['Task'])
-async def create_task_router(task_schemas: TaskCreate, session: AsyncSession = Depends(get_session)):
-    """руотер создания задачи"""
-    task = create_task(session=session, task_schemas=task_schemas)
-    if task.current_datetime > task.deadline_datetime:
-        raise HTTPException(status_code=400, detail="Срок выполнения не может быть меньше даты "
-                                                    "создания")
-    else:
-        await session.commit()
-    return task
+# @calendar_app.post("/create/", response_model=TaskDetail, tags=['Task'])
+# async def create_task_router(task_schemas: TaskCreate, session: AsyncSession = Depends(get_session)):
+#     """руотер создания задачи"""
+#     task = create_task(session=session, task_schemas=task_schemas)
+#     if task.current_datetime > task.deadline_datetime:
+#         raise HTTPException(status_code=400, detail="Срок выполнения не может быть меньше даты "
+#                                                     "создания")
+#     else:
+#         await session.commit()
+#     return task
+

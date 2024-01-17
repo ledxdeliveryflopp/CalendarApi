@@ -34,6 +34,12 @@ async def get_all_token(session: AsyncSession):
     return tokens.scalars().all()
 
 
+async def get_token_by_user_id(session: AsyncSession, user_id: int):
+    """Функция вывода всех токенов"""
+    token = await session.execute(select(TokenModel).where(TokenModel.user_id == user_id))
+    return token.scalars().first()
+
+
 async def get_user_by_token(session: AsyncSession, token: str):
     """Функция вывода текущего пользователя по токену"""
     credentials_exception = HTTPException(

@@ -32,6 +32,7 @@ class TaskDetail(TaskBase):
 class TaskCreate(TaskBase):
     description: Optional[str] = None
     deadline_datetime: date
+    user_id: int
 
     class Config:
         orm_mode = True

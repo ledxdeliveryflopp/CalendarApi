@@ -11,7 +11,7 @@ class UserCreate(UserBase):
     hashed_password: str = Field(min_length=8)
 
 
-class UserFullSchemas(UserCreate):
+class UserFullSchemas(UserBase):
     """Схема полной информации о пользователе"""
     id: int
 

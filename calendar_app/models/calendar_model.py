@@ -11,5 +11,6 @@ class TaskModel(Base):
     description = Column(String(160), comment='Описание задачи')
     current_datetime = Column(Date, nullable=False, comment='Время создания задачи')
     deadline_datetime = Column(Date, nullable=False, comment='Срок выполнения')
+    user_id = Column(Integer, nullable=False)
 
 

@@ -22,6 +22,7 @@ services:
     ports:
       - "9000:9000"
 
+
   user_app:
     links:
       - postgres
@@ -29,6 +30,14 @@ services:
     command: uvicorn main:user_system --host 0.0.0.0 --port 8000
     ports:
       - "8000:8000"
+
+  cart_app:
+    links:
+      - postgres
+    build: ./cart_app
+    command: uvicorn main:cart_system --host 0.0.0.0 --port 7000
+    ports:
+      - "7000:7000"
 
 
 volumes:

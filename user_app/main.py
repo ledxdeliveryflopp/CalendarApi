@@ -1,9 +1,12 @@
+import hashlib
 from typing import Annotated
 from fastapi import Depends, HTTPException, FastAPI
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.middleware.cors import CORSMiddleware
 
-from crud.token_crud import create_access_token, get_all_token, get_user_by_token
+from crud.token_crud import create_access_token, get_all_token, get_user_by_token, \
+    get_token_by_user_id
 from crud.user_crud import get_all_user, create_user, get_user, get_user_id
 from schemas.token_chemas import Token
 from schemas.user_schemas import UserFullSchemas, UserCreate, UserBase
@@ -30,6 +33,22 @@ async def init_tables():
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/token/")
 
 
+origins = [
+    "http://localhost",
+    "http://localhost:8000/",
+    "http://127.0.0.1:9000/",
+    "https://pogoda.mail.ru/"
+]
+
+user_system.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
 @user_system.get("/list/", response_model=list[UserFullSchemas], tags=['User'])
 async def get_all_user_router(token: Annotated[str, Depends(oauth2_scheme)], session: AsyncSession =
                               Depends(get_session)):
@@ -41,10 +60,11 @@ async def get_all_user_router(token: Annotated[str, Depends(oauth2_scheme)], ses
 
 
 @user_system.get("/user_id/", response_model=UserFullSchemas, tags=['User'])
-async def get_user_by_id(user_id: int, token: Annotated[str, Depends(oauth2_scheme)], session:
-                         AsyncSession = Depends(get_session)):
+async def get_user_by_id(user_id: int, session: AsyncSession = Depends(get_session)):
     """Роутер вывода пользователя по id"""
     user = await get_user_id(session, user_id=user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail='Пользователя нет')
     return user
 
 
@@ -77,10 +97,26 @@ async def all_tokens_router(session: AsyncSession = Depends(get_session)):
     return tokens
 
 
-@user_system.get("/get_user/", response_model=UserBase, tags=['Tokens'])
+@user_system.get("/get_user/", response_model=UserFullSchemas, tags=['Tokens'])
 async def get_user_router(token: str = Depends(oauth2_scheme), session: AsyncSession = Depends(
                             get_session)):
     """Роутер вывода текущего авторизированного пользователя"""
     user = get_user_by_token(session=session, token=token)
     return user
 
+
+def calculate_signature(*args) -> str:
+    """Create signature MD5.
+    """
+    return print(hashlib.md5(':'.join(str(arg) for arg in args).encode()).hexdigest())
+
+
+calculate_signature()
+
+
+@user_system.post("/payment/",)
+def payment_router():
+    signature = calculate_signature
+    url = f'https://auth.robokassa.ru/Merchant/Index.aspx?MerchantLogin=TestFastAPI&OutSum=11' \
+          f'&InvoiceID=0&Description=test&SignatureValue={signature}'
+    return

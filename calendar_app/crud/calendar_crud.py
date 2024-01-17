@@ -16,8 +16,10 @@ async def get_task_by_title(session: AsyncSession, title: str):
     return result.first()
 
 
-def create_task(session: AsyncSession, task_schemas: TaskCreate):
+def create_task(session: AsyncSession, task_schemas: TaskCreate, user_id: int):
     """Функция создания задачи"""
-    new_task = TaskModel(**task_schemas.model_dump())
+    new_task = TaskModel(title=task_schemas.title, description=task_schemas.description,
+                         current_datetime=task_schemas.current_datetime,
+                         deadline_datetime=task_schemas.deadline_datetime, user_id=user_id)
     session.add(new_task)
     return new_task
