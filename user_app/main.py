@@ -1,15 +1,16 @@
-import hashlib
+import json
 from typing import Annotated
+import pika
 from fastapi import Depends, HTTPException, FastAPI
+from fastapi.encoders import jsonable_encoder
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
-from starlette.middleware.cors import CORSMiddleware
 
-from crud.token_crud import create_access_token, get_all_token, get_user_by_token, \
-    get_token_by_user_id
+from broker.broker import callback
+from crud.token_crud import create_access_token, get_all_token, get_user_by_token
 from crud.user_crud import get_all_user, create_user, get_user, get_user_id
 from schemas.token_chemas import Token
-from schemas.user_schemas import UserFullSchemas, UserCreate, UserBase
+from schemas.user_schemas import UserFullSchemas, UserCreate
 from database.db import async_session, engine, Base
 from utils.user_utils import verify_password
 
@@ -19,7 +20,13 @@ async def get_session() -> AsyncSession:
         yield session
 
 
+# router = RabbitRouter("amqp://guest:guest@rabbitmq:5672")
+
 user_system = FastAPI()
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/token/")
+
+broker = pika.BlockingConnection(pika.URLParameters("amqp://guest:guest@rabbitmq:5672"))
 
 
 @user_system.on_event("startup")
@@ -28,25 +35,6 @@ async def init_tables():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
-
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/token/")
-
-
-origins = [
-    "http://localhost",
-    "http://localhost:8000/",
-    "http://127.0.0.1:9000/",
-    "https://pogoda.mail.ru/"
-]
-
-user_system.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 
 @user_system.get("/list/", response_model=list[UserFullSchemas], tags=['User'])
@@ -69,11 +57,26 @@ async def get_user_by_id(user_id: int, session: AsyncSession = Depends(get_sessi
 
 
 @user_system.post("/create/", response_model=UserFullSchemas, tags=['User'])
-async def create_user_router(user_schemas: UserCreate, session: AsyncSession = Depends(get_session)):
+async def create_user_router(user_schemas: UserCreate, session: AsyncSession = Depends(
+                             get_session)):
     """Роутер создания пользователя"""
     user = create_user(session=session, user_schemas=user_schemas)
     await session.commit()
+    user_info = user.username
+    channel = broker.channel()
+    channel.queue_declare(queue='user')
+    channel.basic_publish(exchange='', routing_key='user', body=user_info)
     return user
+
+
+@user_system.get("/test/", tags=['User'])
+async def get_username_by_broker():
+    channel = broker.channel()
+    method_frame, header_frame, body = channel.basic_get('user')
+    if method_frame:
+        return body
+    else:
+        return HTTPException(status_code=500, detail='failed')
 
 
 @user_system.post("/token/", tags=['Tokens'])
@@ -99,24 +102,7 @@ async def all_tokens_router(session: AsyncSession = Depends(get_session)):
 
 @user_system.get("/get_user/", response_model=UserFullSchemas, tags=['Tokens'])
 async def get_user_router(token: str = Depends(oauth2_scheme), session: AsyncSession = Depends(
-                            get_session)):
+    get_session)):
     """Роутер вывода текущего авторизированного пользователя"""
     user = get_user_by_token(session=session, token=token)
     return user
-
-
-def calculate_signature(*args) -> str:
-    """Create signature MD5.
-    """
-    return print(hashlib.md5(':'.join(str(arg) for arg in args).encode()).hexdigest())
-
-
-calculate_signature()
-
-
-@user_system.post("/payment/",)
-def payment_router():
-    signature = calculate_signature
-    url = f'https://auth.robokassa.ru/Merchant/Index.aspx?MerchantLogin=TestFastAPI&OutSum=11' \
-          f'&InvoiceID=0&Description=test&SignatureValue={signature}'
-    return

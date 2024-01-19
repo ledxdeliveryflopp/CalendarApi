@@ -12,7 +12,7 @@ async def get_all_cart(session: AsyncSession):
 
 
 def create_cart(session: AsyncSession, user_id: int, products_id: list):
-    """Функция создания товара"""
+    """Функция создания корзины"""
     new_cart = CartModel(products=products_id, user_id=user_id)
     session.add(new_cart)
     return new_cart
